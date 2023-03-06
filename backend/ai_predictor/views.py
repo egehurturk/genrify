@@ -19,9 +19,14 @@ Note: the ML inference should not be blocking but should update later (ajax or a
 """
 
 
-@api_view(['GET', 'DELETE'])
+@api_view(['POST', 'DELETE'])
 @permission_classes((permissions.AllowAny,))
 def inference(request):
+
+    # EITHER youtube link
+    # OR file upload
+
+
     song_name = request.GET.get("song_name", "")
     song_artist = request.GET.get("song_artist", "")
     song_album = request.GET.get("song_album", "")
@@ -50,13 +55,28 @@ def inference(request):
 
     elif request.method == "DELETE": # MUST BE PROTECTED
         try:
-            song = Song.objects.get(song_name=song_name, song_artist=song_artist, song_album=song_album)
+            song = Song.objects.get(song_name=song_name, song_genre=genre)
             song.delete()
             return Response(_to_json(f"Deleted song with {song_name}-{song_artist}-{song_album}"), status= status.HTTP_204_NO_CONTENT) # return json as error
         except:
             print(f"Song {song_name}-{song_artist}-{song_album} does not exist")
             return Response(_to_json(f"Song does not exist in database."), status= status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(['POST'])
+@permission_classes((permissions.AllowAny,))
+def demo(request):
+    if request.method == "POST":
+        file = request.FILES["file-upload"]
+        if (file is None):
+            print("File is none")
+        else:
+            file_size = file.size
+            file_name = file.name
+            file_val = file.read() # in bytes
+            print(f"{file_name}-{convert_bytes(file_size)}")
+    return Response()
+        
 
 @api_view(['GET'])
 @permission_classes((permissions.AllowAny,))
@@ -84,3 +104,11 @@ def _predict_song_genre(song_data):
     Use ML
     """
     return "Rock"
+
+def convert_bytes(size):
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if size < 1024.0:
+            return "%3.1f %s" % (size, x)
+        size /= 1024.0
+
+    return size

@@ -1,9 +1,66 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 // function classNames(...classes) {
 //   return classes.filter(Boolean).join(' ')
 // }
 
+function getExtension(filename) {
+  return filename.split('.').pop()
+}
+
+function checkFile(file) {
+  return getExtension(file.name).toLowerCase() === "mp3" && 
+         file.size <= 10000000
+}
+
 export default function Example() {
+
+  const [youtubeLink, setYoutubeLink]   = useState("")
+  const [youtubeLinkUploaded, setYoutubeLinkUploaded] =  useState(false)
+  const [fileUploaded, setFileUploaded] =  useState(false)
+  const [file, setFile] = useState();
+
+  
+
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const data = new FormData(event.target);
+
+    fetch('http://127.0.0.1:8000/api/demo', {
+      method: 'POST',
+      body: data
+    })
+    .then( res => console.log(res))
+    .catch(error => console.log(error))
+  }
+
+  const handleFileUpload = (event) => {
+    if (event.target.files) {
+      checkFile(event.target.files[0])
+       
+      if (checkFile(event.target.files[0])) {
+          console.log("saving...")
+          setFile(event.target.files[0]);
+          setFileUploaded(true);
+
+      }
+      else {
+        alert(`${event.target.files[0].name} is not a mp3 file. Only mp3 files are accepted for upload`)
+      }
+    } else {
+      alert("No files are uploaded")
+    }
+  }
+
+  const handleInputChange = (event) => {
+    setYoutubeLink(event.target.value);
+    setYoutubeLinkUploaded(true);
+
+    // make the file upload disable
+
+    
+  }
+
   return (
     <>
       <div className="min-h-full">
@@ -19,7 +76,7 @@ export default function Example() {
         {/* MAIN CONTENT */}
         <main className="-mt-32">
           <div className="mx-auto max-w-5xl px-4 pb-12 sm:px-6 lg:px-8">
-            <form className="space-y-8">
+            <form onSubmit={handleSubmit} method="post" className="space-y-8" encType='multipart/form-data'>
               <div className="space-y-8">
 
                 {/* FORM BLOCK */}
@@ -31,16 +88,12 @@ export default function Example() {
                           type="text"
                           name="song-link-text"
                           id="song-link-text"
+                          disabled={fileUploaded}
                           autoComplete="text"
+                          onChange={handleInputChange}
                           placeholder='Enter YouTube link'
-                          className="block w-full bg-gray-700 rounded-none rounded-l-md border-0 text-gray-300 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-300 sm:text-sm sm:leading-6"
+                          className="block w-full bg-gray-700 rounded-lg text-gray-300 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-300 sm:text-sm sm:leading-6 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:text-white disabled:border-dashed disabled:border-2 disabled:ring-gray-200"
                         />
-                        <button
-                        type="button"
-                        className="relative -ml-px  gap-x-1.5 rounded-r-md px-5 py-0 text-sm font-semibold text-gray-100 ring-1 ring-inset ring-gray-300 hover:bg-gray-700"
-                        >
-                        Search
-                      </button>
                       </div>
                      
                     </div>
@@ -57,7 +110,7 @@ export default function Example() {
                 {/* UPLOAD BLOCK */}
                 <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                   <div className="sm:col-span-6">
-                    <div className="mt-2 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
+                    <div className=" mt-2 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
                       <div className="space-y-1 text-center">
                         <svg
                           className="mx-auto h-12 w-12 text-gray-400"
@@ -79,16 +132,27 @@ export default function Example() {
                             className="relative cursor-pointer rounded-md font-medium text-indigo-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
                           >
                             <span>Upload a file</span>
-                            <input id="file-upload" name="file-upload" type="file" className="sr-only" />
+                            <input
+                              id="file-upload"
+                              name="file-upload"
+                              onChange={handleFileUpload}
+                              disabled={youtubeLinkUploaded}
+                              type="file" 
+                              // TODO: CHANGE HERE
+                              className="sr-only" />
                           </label>
                           <p className="pl-1">or drag and drop</p>
+                          {/* <p className="text-gray-200 pl-1">{file && `${file.name} - ${file.type} - ${file.size}`}</p> */}
                         </div>
-                        <p className="text-xs text-gray-500">MP3 up to 20MB</p>
+                          <p className="text-gray-200 text-sm">{file && `${file.name} - ${file.type} - ${file.size}`} </p>
+                          <p className="text-xs text-gray-500">MP3 up to 10MB</p>
+                            
                       </div>
                     </div>
                   </div>
                 </div>
 
+                {/* SUBMIT button */}
                 <div>
                   <button
                     type="submit"
@@ -97,7 +161,6 @@ export default function Example() {
                     Search
                   </button>
                 </div>
-
 
               </div>
             </form>
