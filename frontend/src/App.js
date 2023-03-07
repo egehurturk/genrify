@@ -10,7 +10,7 @@ function getExtension(filename) {
 
 function properName(filename) {
   if (filename.length <= 15) {
-    filename = filename.substring(0, filename.length-4)
+    return filename
   }
   console.log(filename)
   return filename.substring(0, 15) + "... .mp3";
@@ -35,16 +35,24 @@ export default function Example() {
   const [youtubeLinkUploaded, setYoutubeLinkUploaded] =  useState(false)
   const [fileUploaded, setFileUploaded] =  useState(false)
   const [file, setFile] = useState();
+  const [spinner, setSpinner] = useState(false);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const data = new FormData(event.target);
+    setSpinner(true);
 
-    fetch('http://127.0.0.1:8000/api/demo', {
+    const data = new FormData(event.target);
+    fetch('http://127.0.0.1:8000/api/classify', {
       method: 'POST',
-      body: data
+      body: data,
     })
-    .then( res => console.log(res))
+    .then( res => res.json())
+    .then( data => {
+      setSpinner(false); 
+      alert(data); // FIXME: show a model here
+      setYoutubeLinkUploaded(false);
+      setFileUploaded(false);
+    } )
     .catch(error => console.log(error))
   }
 
@@ -73,20 +81,16 @@ export default function Example() {
   }
 
   const handleInputChange = (event) => {
-    if (event.target.value != "") {
+    if (event.target.value !== "") {
       setYoutubeLink(event.target.value);
       setYoutubeLinkUploaded(true);
     } else {
       setYoutubeLinkUploaded(false);
       setYoutubeLink("");
     }
-
-
-    // make the file upload disable
   }
 
 
-  
   let klass_div = "mt-2 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6";
   if (youtubeLinkUploaded) {
     klass_div += " cursor-not-allowed bg-gray-700 ring-gray-200 pb-6";
@@ -103,6 +107,12 @@ export default function Example() {
   if (fileUploaded) {
   } else {
     klass_svg += " hidden"
+  }
+
+
+  let klass_svg_loader = "text-xs w-5 h-5 mr-2 text-white animate-spin dark:text-gray-400 fill-blue-500"
+  if (!spinner) {
+    klass_svg_loader += " hidden"
   }
 
   return (
@@ -129,7 +139,7 @@ export default function Example() {
                     <div className="sm:col-span-6 flex rounded-md shadow-sm">
                       <div className="mt-4 relative flex flex-grow items-stretch focus-within:z-10">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
-                          <span className="text-gray-500 sm:text-sm">http://</span>
+                          <span className="text-gray-500 sm:text-sm">youtube-url: </span>
                         </div>
                         <input
                           type="text"
@@ -139,7 +149,7 @@ export default function Example() {
                           autoComplete="text"
                           onChange={handleInputChange}
                           placeholder='Enter YouTube link'
-                          className="block w-full bg-gray-700 rounded-lg pl-16 text-gray-300 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-300 sm:text-sm sm:leading-6 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:text-white disabled:border-dashed disabled:border-2 disabled:ring-gray-200"
+                          className="block w-full bg-gray-700 rounded-lg pl-28 text-gray-300 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-300 sm:text-sm sm:leading-6 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:text-white disabled:border-dashed disabled:border-2 disabled:ring-gray-200"
                         />
                       </div>
                      
@@ -191,14 +201,14 @@ export default function Example() {
                           <p className="pl-1">or drag and drop</p>
                           {/* <p className="text-gray-200 pl-1">{file && `${file.name} - ${file.type} - ${file.size}`}</p> */}
                         </div>
-                          <div className='flex justify-center justify-content'>
+                        <div className='flex justify-center justify-content'>
                             <svg onClick={handleRemoveFileUpload} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={klass_svg}>
                               <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                             </svg>
                             <p className="text-gray-200 text-sm">
                               {file && `${properName(file.name)}`}
                             </p> 
-                          </div>
+                        </div>
                           <p className="text-xs text-gray-500">MP3 up to 10MB</p>
                       </div>
                     </div>
@@ -207,14 +217,19 @@ export default function Example() {
 
                 {/* SUBMIT button */}
                 <div>
-                  <button
-                    type="submit"
-                    className="flex w-full justify-center rounded-md bg-indigo-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                  >
-                    Search
-                  </button>
+                  <div className='flex justify-center justify-content'>
+                        <button
+                          type="submit"
+                          className="flex w-full justify-center rounded-md bg-indigo-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        >
+                           <svg aria-hidden="true" className={klass_svg_loader} viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                              <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+                          </svg>
+                          Search
+                        </button>
+                  </div>
                 </div>
-
                 {/* <Modal>
                 </Modal> */}
 
@@ -226,7 +241,3 @@ export default function Example() {
     </>
   )
 }
-
-
-
-

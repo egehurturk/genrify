@@ -4,5 +4,5 @@ from ai_predictor import views
 urlpatterns = [
     path('api/classify', views.inference),
     path('api/list', views._list_songs),
-    path('api/demo', views.demo),
+    path('api/classify', views.classify),
 ]
