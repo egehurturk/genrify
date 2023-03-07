@@ -1,10 +1,19 @@
 import { Fragment, useState } from 'react'
+import Modal from "./components/Modal"
 // function classNames(...classes) {
 //   return classes.filter(Boolean).join(' ')
 // }
 
 function getExtension(filename) {
   return filename.split('.').pop()
+}
+
+function properName(filename) {
+  if (filename.length <= 15) {
+    filename = filename.substring(0, filename.length-4)
+  }
+  console.log(filename)
+  return filename.substring(0, 15) + "... .mp3";
 }
 
 function checkFile(file) {
@@ -26,9 +35,6 @@ export default function Example() {
   const [youtubeLinkUploaded, setYoutubeLinkUploaded] =  useState(false)
   const [fileUploaded, setFileUploaded] =  useState(false)
   const [file, setFile] = useState();
-
-  
-
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -60,6 +66,12 @@ export default function Example() {
     }
   }
 
+  const handleRemoveFileUpload = (event) => {
+    event.preventDefault();
+    setFile(null);
+    setFileUploaded(false); 
+  }
+
   const handleInputChange = (event) => {
     if (event.target.value != "") {
       setYoutubeLink(event.target.value);
@@ -87,7 +99,7 @@ export default function Example() {
     klass_upload += " cursor-pointer hover:text-indigo-500";
   }
 
-  let klass_svg = "w-5 h-5 text-white";
+  let klass_svg = "w-5 cursor-pointer hover:text-gray-300 h-5 text-white";
   if (fileUploaded) {
   } else {
     klass_svg += " hidden"
@@ -116,6 +128,9 @@ export default function Example() {
                   <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                     <div className="sm:col-span-6 flex rounded-md shadow-sm">
                       <div className="mt-4 relative flex flex-grow items-stretch focus-within:z-10">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
+                          <span className="text-gray-500 sm:text-sm">http://</span>
+                        </div>
                         <input
                           type="text"
                           name="song-link-text"
@@ -124,7 +139,7 @@ export default function Example() {
                           autoComplete="text"
                           onChange={handleInputChange}
                           placeholder='Enter YouTube link'
-                          className="block w-full bg-gray-700 rounded-lg text-gray-300 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-300 sm:text-sm sm:leading-6 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:text-white disabled:border-dashed disabled:border-2 disabled:ring-gray-200"
+                          className="block w-full bg-gray-700 rounded-lg pl-16 text-gray-300 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-300 sm:text-sm sm:leading-6 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:text-white disabled:border-dashed disabled:border-2 disabled:ring-gray-200"
                         />
                       </div>
                      
@@ -176,17 +191,14 @@ export default function Example() {
                           <p className="pl-1">or drag and drop</p>
                           {/* <p className="text-gray-200 pl-1">{file && `${file.name} - ${file.type} - ${file.size}`}</p> */}
                         </div>
-                          <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={klass_svg}>
+                          <div className='flex justify-center justify-content'>
+                            <svg onClick={handleRemoveFileUpload} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={klass_svg}>
                               <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                             </svg>
                             <p className="text-gray-200 text-sm">
-                              {file && `${file.name.substring(0, 15) + "... " + file.name.substring(file.name.length-4, file.name.length)}`}
+                              {file && `${properName(file.name)}`}
                             </p> 
-                          </span>
-                         
-                         
-
+                          </div>
                           <p className="text-xs text-gray-500">MP3 up to 10MB</p>
                       </div>
                     </div>
@@ -202,6 +214,9 @@ export default function Example() {
                     Search
                   </button>
                 </div>
+
+                {/* <Modal>
+                </Modal> */}
 
               </div>
             </form>
