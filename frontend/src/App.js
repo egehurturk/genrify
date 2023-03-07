@@ -8,8 +8,16 @@ function getExtension(filename) {
 }
 
 function checkFile(file) {
-  return getExtension(file.name).toLowerCase() === "mp3" && 
-         file.size <= 10000000
+  let msg = "";
+  if (getExtension(file.name).toLowerCase() !== "mp3") {
+    msg = `${file.name} is not a mp3 file. Only mp3 files are accepted for upload`;
+    return [false, msg];
+  } else if (file.size >= 10000000) {
+    msg = `${file.name} exceeds the 10MB file size limit`;
+    return [false, msg];
+  } else {
+    return [true, msg];
+  }
 }
 
 export default function Example() {
@@ -36,29 +44,53 @@ export default function Example() {
 
   const handleFileUpload = (event) => {
     if (event.target.files) {
-      checkFile(event.target.files[0])
-       
-      if (checkFile(event.target.files[0])) {
+      const [check, msg] = checkFile(event.target.files[0]);
+
+      if (check) {
           console.log("saving...")
           setFile(event.target.files[0]);
           setFileUploaded(true);
-
       }
       else {
-        alert(`${event.target.files[0].name} is not a mp3 file. Only mp3 files are accepted for upload`)
+        alert(`${msg}`)
       }
-    } else {
+    } 
+    else {
       alert("No files are uploaded")
     }
   }
 
   const handleInputChange = (event) => {
-    setYoutubeLink(event.target.value);
-    setYoutubeLinkUploaded(true);
+    if (event.target.value != "") {
+      setYoutubeLink(event.target.value);
+      setYoutubeLinkUploaded(true);
+    } else {
+      setYoutubeLinkUploaded(false);
+      setYoutubeLink("");
+    }
+
 
     // make the file upload disable
+  }
 
-    
+
+  
+  let klass_div = "mt-2 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6";
+  if (youtubeLinkUploaded) {
+    klass_div += " cursor-not-allowed bg-gray-700 ring-gray-200 pb-6";
+  }
+
+  let klass_upload = "relative rounded-md font-medium text-indigo-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2"
+  if (youtubeLinkUploaded) {
+    klass_upload += " cursor-not-allowed ";
+  } else {
+    klass_upload += " cursor-pointer hover:text-indigo-500";
+  }
+
+  let klass_svg = "w-5 h-5 text-white";
+  if (fileUploaded) {
+  } else {
+    klass_svg += " hidden"
   }
 
   return (
@@ -92,7 +124,7 @@ export default function Example() {
                           autoComplete="text"
                           onChange={handleInputChange}
                           placeholder='Enter YouTube link'
-                          className="block w-full bg-gray-700 rounded-lg text-gray-300 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-300 sm:text-sm sm:leading-6 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:text-white disabled:border-dashed disabled:border-2 disabled:ring-gray-200"
+                          className="block w-full bg-gray-700 rounded-lg text-gray-300 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-300 sm:text-sm sm:leading-6 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:text-white disabled:border-dashed disabled:border-2 disabled:ring-gray-200"
                         />
                       </div>
                      
@@ -110,7 +142,7 @@ export default function Example() {
                 {/* UPLOAD BLOCK */}
                 <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                   <div className="sm:col-span-6">
-                    <div className=" mt-2 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
+                    <div className={klass_div}>
                       <div className="space-y-1 text-center">
                         <svg
                           className="mx-auto h-12 w-12 text-gray-400"
@@ -129,7 +161,7 @@ export default function Example() {
                         <div className="flex text-sm text-gray-600">
                           <label
                             htmlFor="file-upload"
-                            className="relative cursor-pointer rounded-md font-medium text-indigo-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
+                            className={klass_upload}
                           >
                             <span>Upload a file</span>
                             <input
@@ -144,9 +176,18 @@ export default function Example() {
                           <p className="pl-1">or drag and drop</p>
                           {/* <p className="text-gray-200 pl-1">{file && `${file.name} - ${file.type} - ${file.size}`}</p> */}
                         </div>
-                          <p className="text-gray-200 text-sm">{file && `${file.name} - ${file.type} - ${file.size}`} </p>
+                          <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={klass_svg}>
+                              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                            </svg>
+                            <p className="text-gray-200 text-sm">
+                              {file && `${file.name.substring(0, 15) + "... " + file.name.substring(file.name.length-4, file.name.length)}`}
+                            </p> 
+                          </span>
+                         
+                         
+
                           <p className="text-xs text-gray-500">MP3 up to 10MB</p>
-                            
                       </div>
                     </div>
                   </div>
