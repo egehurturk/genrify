@@ -52,8 +52,12 @@ export default function Example() {
       alert(data); // FIXME: show a model here
       setYoutubeLinkUploaded(false);
       setFileUploaded(false);
+      setFile();
     } )
-    .catch(error => console.log(error))
+    .catch(error => {
+      console.log(error);
+      setSpinner(false); 
+    })
   }
 
   const handleFileUpload = (event) => {
