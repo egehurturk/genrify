@@ -1,18 +1,28 @@
 import librosa
 import soundfile as sf
 import io
+from .model import *
 
-def handle_binary_song_data(bin_data):
-    ios = io.BytesIO(bin_data)
-    data, samplerate = sf.read(ios, channels=1, samplerate=44100, format="RAW", subtype="FLOAT")
-    print(samplerate)
-    print(data[0:10])
+__all__ = ['predict_genre']
 
-def _preprocess_song(song_data):
-    return song_data
+def predict_genre(file_path):
+    data, sr = _load_file(file_path)
+    preprocessed_data, sr = _preprocess_song(data, sr)
+    predicted_genre = _model_predict(file_path)
+    return predicted_genre
 
-def _predict_song_genre(song_data):
+def _load_file(file_path):
+    data, samplerate = librosa.load(file_path, sr=44100)
+    assert samplerate == 44100
+    return data, samplerate
+
+def _preprocess_song(song_data, sr):
+    return song_data, sr
+
+def _model_predict(song_path):
     """
     Use ML
     """
-    return "Rock"
+    genre = predict(song_path)
+    return genre
+

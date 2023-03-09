@@ -53,10 +53,15 @@ export default function Example() {
       setYoutubeLinkUploaded(false);
       setFileUploaded(false);
       setFile();
+      setYoutubeLink("")
     } )
     .catch(error => {
-      console.log(error);
+      alert(error);
       setSpinner(false); 
+      setYoutubeLinkUploaded(false);
+      setFileUploaded(false);
+      setFile();
+      setYoutubeLink("")
     })
   }
 
@@ -151,6 +156,7 @@ export default function Example() {
                           id="song-link-text"
                           disabled={fileUploaded}
                           autoComplete="text"
+                          value={youtubeLink}
                           onChange={handleInputChange}
                           placeholder='Enter YouTube link'
                           className="block w-full bg-gray-700 rounded-lg pl-28 text-gray-300 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-300 sm:text-sm sm:leading-6 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:text-white disabled:border-dashed disabled:border-2 disabled:ring-gray-200"
