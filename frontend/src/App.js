@@ -1,8 +1,32 @@
-import { Fragment, useState } from 'react'
-import Modal from "./components/Modal"
-// function classNames(...classes) {
-//   return classes.filter(Boolean).join(' ')
-// }
+import { useEffect, useState } from 'react'
+import Modal from 'react-modal'
+
+Modal.setAppElement("#root")
+
+const customStyles = {
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+    border: '0px solid #ccc',
+    backgroundColor: 'rgba(100, 100, 100, 0)'
+  },
+  overlay: {
+    backgroundColor: 'rgba(150, 150, 150, 0.55)'
+  }
+};
+
+function isJsonString(str) {
+  try {
+      JSON.parse(str);
+  } catch (e) {
+      return false;
+  }
+  return true;
+}
 
 function getExtension(filename) {
   return filename.split('.').pop()
@@ -12,7 +36,6 @@ function properName(filename) {
   if (filename.length <= 15) {
     return filename
   }
-  console.log(filename)
   return filename.substring(0, 15) + "... .mp3";
 }
 
@@ -29,6 +52,7 @@ function checkFile(file) {
   }
 }
 
+
 export default function Example() {
 
   const [youtubeLink, setYoutubeLink]   = useState("")
@@ -36,6 +60,13 @@ export default function Example() {
   const [fileUploaded, setFileUploaded] =  useState(false)
   const [file, setFile] = useState();
   const [spinner, setSpinner] = useState(false);
+  const [modalShow, setModelShow] = useState(false);
+  const [modalData, setModelData] = useState("");
+
+  useEffect(() => {
+    // console.log(modalData)
+    // console.log(toType(modalData))
+  }, [modalData])
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -49,19 +80,21 @@ export default function Example() {
     .then( res => res.json())
     .then( data => {
       setSpinner(false); 
-      alert(data); // FIXME: show a model here
+      setModelData(data);
+      setModelShow(true);
       setYoutubeLinkUploaded(false);
       setFileUploaded(false);
       setFile();
       setYoutubeLink("")
     } )
     .catch(error => {
-      alert(error);
+      setModelData(error);
+      setModelShow(true);
       setSpinner(false); 
       setYoutubeLinkUploaded(false);
       setFileUploaded(false);
       setFile();
-      setYoutubeLink("")
+      setYoutubeLink("");
     })
   }
 
@@ -70,12 +103,12 @@ export default function Example() {
       const [check, msg] = checkFile(event.target.files[0]);
 
       if (check) {
-          console.log("saving...")
           setFile(event.target.files[0]);
           setFileUploaded(true);
       }
       else {
-        alert(`${msg}`)
+        setModelData(msg);
+        setModelShow(true);
       }
     } 
     else {
@@ -225,6 +258,10 @@ export default function Example() {
                   </div>
                 </div>
 
+                {/* <Modal title="There were 2 errors with your submission" onClose={() => setModelShow(false)} show={modalShow}>
+                    {modalData}
+                </Modal> */}
+
                 {/* SUBMIT button */}
                 <div>
                   <div className='flex justify-center justify-content'>
@@ -240,9 +277,25 @@ export default function Example() {
                         </button>
                   </div>
                 </div>
-                {/* <Modal>
-                </Modal> */}
 
+                <Modal closeTimeoutMS={300} isOpen={modalShow} style={customStyles} onRequestClose={() => setModelShow(false)} shouldCloseOnOverlayClick={true}>
+                  <div className="pt-8 pb-10 pr-10 pl-10 rounded-md bg-green-200 p-4">
+                      <div className="flex justify-between">
+                    
+                      <div className="ml-3">
+                          <div className="mt-2 text-sm text-gray-700">
+                          <ul role="list" className="list-disc space-y-1 pl-5">
+                              {
+                                isJsonString(modalData)
+                                      ? (<li>{`${JSON.parse(modalData).detail}`}</li>)
+                                      : (<li>{`${modalData}`}</li>)
+                              } 
+                          </ul>
+                          </div>
+                      </div>
+                      </div>
+                  </div>
+                </Modal>  
               </div>
             </form>
           </div>
@@ -251,3 +304,7 @@ export default function Example() {
     </>
   )
 }
+
+
+// FIXME: when cross is selected while removing uploaded file, it doesn't fall back to input state being emptied
+// when submit is clicked again.
