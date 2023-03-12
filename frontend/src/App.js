@@ -307,4 +307,5 @@ export default function Example() {
 
 
 // FIXME: when cross is selected while removing uploaded file, it doesn't fall back to input state being emptied
-// when submit is clicked again.
+// when submit is clicked again. OR when a file is submitted and the response is returned via the modal, when clicked
+// on search button again, the file is present there. It even saves the files!
