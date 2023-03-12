@@ -107,3 +107,8 @@ def convert_bytes(size):
 
 
 # FIXME: convert system call to ffmpeg-python, in trim_video check for in file duration to be bigger than 1
+
+# https://stackoverflow.com/questions/3844430/how-to-get-the-duration-of-a-video-in-python
+# https://stackoverflow.com/questions/42438380/ffmpeg-in-python-script
+# https://www.youtube.com/watch?v=SGsJc1K5xj8
+# https://github.com/kkroening/ffmpeg-python
