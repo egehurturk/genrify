@@ -40,7 +40,6 @@ def classify(request):
 
                 except (pytube.exceptions.VideoUnavailable, pytube.exceptions.RegexMatchError) as e:
                     print("Error occured, video does not exist")
-                    print(e)
                     return Response(_to_json(f"Youtube link {youtube_link} does not exist"))
                 except (audioread.exceptions.NoBackendError) as er:
                     return Response(_to_json(f"{er}"))

@@ -66,14 +66,14 @@ export default function Example() {
   useEffect(() => {
     // console.log(modalData)
     // console.log(toType(modalData))
-  }, [modalData])
+  }, [modalData, file])
 
   const handleSubmit = (event) => {
     event.preventDefault();
     setSpinner(true);
 
     const data = new FormData(event.target);
-    fetch('http://127.0.0.1:8000/api/classify', {
+    fetch('http://0.0.0.0:8000/api/classify', {
       method: 'POST',
       body: data,
     })
@@ -84,7 +84,7 @@ export default function Example() {
       setModelShow(true);
       setYoutubeLinkUploaded(false);
       setFileUploaded(false);
-      setFile();
+      setFile(null);
       setYoutubeLink("")
     } )
     .catch(error => {
@@ -93,7 +93,7 @@ export default function Example() {
       setSpinner(false); 
       setYoutubeLinkUploaded(false);
       setFileUploaded(false);
-      setFile();
+      setFile(null);
       setYoutubeLink("");
     })
   }
@@ -120,6 +120,7 @@ export default function Example() {
     event.preventDefault();
     setFile(null);
     setFileUploaded(false); 
+    console.log(file)
   }
 
   const handleInputChange = (event) => {
@@ -258,10 +259,6 @@ export default function Example() {
                   </div>
                 </div>
 
-                {/* <Modal title="There were 2 errors with your submission" onClose={() => setModelShow(false)} show={modalShow}>
-                    {modalData}
-                </Modal> */}
-
                 {/* SUBMIT button */}
                 <div>
                   <div className='flex justify-center justify-content'>
@@ -279,18 +276,18 @@ export default function Example() {
                 </div>
 
                 <Modal closeTimeoutMS={300} isOpen={modalShow} style={customStyles} onRequestClose={() => setModelShow(false)} shouldCloseOnOverlayClick={true}>
-                  <div className="pt-8 pb-10 pr-10 pl-10 rounded-md bg-green-200 p-4">
+                  <div className="pt-6 pb-6 pr-10 pl-5 rounded-md bg-green-200 p-4">
                       <div className="flex justify-between">
                     
                       <div className="ml-3">
                           <div className="mt-2 text-sm text-gray-700">
-                          <ul role="list" className="list-disc space-y-1 pl-5">
+                          <div role="list" className="list-disc space-y-1">
                               {
                                 isJsonString(modalData)
-                                      ? (<li>{`${JSON.parse(modalData).detail}`}</li>)
-                                      : (<li>{`${modalData}`}</li>)
+                                      ? (<span>{`${JSON.parse(modalData).detail}.`}</span>)
+                                      : (<span>{`${modalData}`}</span>)
                               } 
-                          </ul>
+                          </div>
                           </div>
                       </div>
                       </div>
