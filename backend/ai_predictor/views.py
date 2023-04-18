@@ -15,6 +15,7 @@ from .ai.helpers import predict_genre
 import audioread
 import time
 from moviepy.editor import *
+from .ai.model import load_ai_model
 
 """
 1) User submits a form on the frontend --> React code should request /api/classify?{params}
@@ -22,6 +23,21 @@ from moviepy.editor import *
 3) Call the ML model (python code)
 4) return a JSON response (serialize)
 """
+
+MODEL_NO = 1
+
+def load_model():
+    if MODEL_NO == 1:
+        WEIGHTS_PATH =  f'{os.path.dirname(os.path.abspath(__file__))}/ai/models/cnn_model_2.h5'
+        model = load_ai_model(WEIGHTS_PATH)
+        return model
+    elif MODEL_NO == 2:
+        WEIGHTS_PATH =  f'{os.path.dirname(os.path.abspath(__file__))}/ai/models/model_weights.h5'
+        MODEL_PATH =  f'{os.path.dirname(os.path.abspath(__file__))}/ai/models/model.json'
+        model = load_ai_model(weights_path=WEIGHTS_PATH, model_json=MODEL_PATH)
+        return model
+    return None
+    
 
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
@@ -32,15 +48,15 @@ def classify(request):
             if (request.POST.get("song-link-text") != ""):
                 youtube_link = request.POST.get("song-link-text")
                 try:
+                    model = load_model()
                     new_file_name = _download_youtube_link_as_mp3_and_trim(youtube_link)
                     print(f"new file: {new_file_name}")
-                    genre = predict_genre(new_file_name)
+                    genre = predict_genre(model, new_file_name, model_no=MODEL_NO)
                     os.remove(new_file_name)
                     return Response(_to_json(f"genre: {genre}"))
-
-                except (pytube.exceptions.VideoUnavailable, pytube.exceptions.RegexMatchError) as e:
+                except (pytube.exceptions.VideoUnavailable, pytube.exceptions.RegexMatchError, KeyError) as e:
                     print("Error occured, video does not exist")
-                    return Response(_to_json(f"Youtube link {youtube_link} does not exist"))
+                    return Response(_to_json(f"Youtube link {youtube_link} does not exist or could not be downloaded due to copyright issues"))
                 except (audioread.exceptions.NoBackendError) as er:
                     return Response(_to_json(f"{er}"))
         else:
@@ -52,7 +68,8 @@ def classify(request):
                 f.write(file_bin)
 
             try:
-                genre = predict_genre(file_name)
+                model = load_model()
+                genre = predict_genre(model, file_name, model_no=MODEL_NO)
                 print(f"{file_name} - {convert_bytes(file_size)}")
 
                 os.remove(file_name)
@@ -83,7 +100,7 @@ def _download_youtube_link_as_mp3_and_trim(yt_link):
 
 def trim_mp4_file(in_file, out_file):
     START_TIME = "00:00:25"
-    END_TIME = "00:01:25"
+    END_TIME = "00:02:00"
     command = f'ffmpeg -ss {START_TIME} -to {END_TIME} -i "{in_file}" -c copy "{out_file}"'
     os.system(command)
 
@@ -105,9 +122,13 @@ def convert_bytes(size):
     return size
 
 
-# FIXME: convert system call to ffmpeg-python, in trim_video check for in file duration to be bigger than 1
 
 # https://stackoverflow.com/questions/3844430/how-to-get-the-duration-of-a-video-in-python
 # https://stackoverflow.com/questions/42438380/ffmpeg-in-python-script
 # https://www.youtube.com/watch?v=SGsJc1K5xj8
 # https://github.com/kkroening/ffmpeg-python
+
+# https://www.youtube.com/watch?v=WeYsTmIzjkw reggae
+# https://youtu.be/CICIOJqEb5c blues
+# https://www.youtube.com/watch?v=dxkohu0iZPk hiphop
+# own mp3 classical
